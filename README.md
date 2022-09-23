@@ -15,3 +15,5 @@ pipenv shell
 ```
 gunicorn main:app
 ```
+
+##### Python 3.8.14 + pipenv
