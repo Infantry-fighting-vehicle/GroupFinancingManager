@@ -1,0 +1,1254 @@
+openapi: '3.0.2'
+info:
+  title: API Title
+  version: '1.0'
+  description: |-
+    Budget Tracker helps you to manage your personal and group expences.
+  termsOfService: http://swagger.io/terms/
+  contact:
+    email: budgettrackerteam@gmail.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: https://api.server.test/v1
+tags:
+  - name: user
+    description: Operations about user
+  - name: group
+    description: Operations about group
+
+paths:
+  /user:
+    post:
+      tags:
+        - user
+      summary: Create user
+      description: Create a new user
+      operationId: createUser
+      requestBody:
+        description: Create user object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/user_creation'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/user_creation'
+        required: true
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user_fullinfo'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/user_fullinfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /user/login:
+    get:
+      tags: 
+        - user
+      summary: Logs user into the system
+      description: ''
+      operationId: loginUser
+      parameters:
+        - name: username
+          in: query
+          description: The username for login
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: The password for login
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user_fullinfo'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/user_fullinfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /user/logout:
+    get:
+      tags:
+        - user
+      summary: Logs out current logged in user
+      description: ''
+      operationId: logoutUser
+      responses:
+        '200':
+          description: Successfully logged out.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - userAccess:
+          - read
+  /user/{username}:
+    get:
+      tags:
+        - user
+      summary: Get user by username
+      description: ''
+      operationId: getUserByUsername
+      parameters:
+        - name: username
+          in: path
+          description: The username that needs to be fetched.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user_personalinfo'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/user_personalinfo'
+            application/x-www-form-urlencoded:
+              schema:
+                $ref: '#/components/schemas/user_personalinfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+        - userAccess:
+          - read
+    put:
+      tags:
+        - user
+      summary: Update user
+      description: 
+        'This can only be done by the logged in user, only his own info.'
+      operationId: updateUser
+      parameters:
+        - name: username
+          in: path
+          description: username that need to be updated
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Update an existent user
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/user_fullinfo'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/user_fullinfo'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/user_fullinfo'
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user_fullinfo'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/user_fullinfo'
+            application/x-www-form-urlencoded:
+              schema:
+                $ref: '#/components/schemas/user_fullinfo'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+      - userAccess:
+        - write
+    delete:
+      tags:
+        - user
+      summary: Delete user
+      description: This can only be done by the logged in user.
+      operationId: deleteUser
+      parameters:
+        - name: username
+          in: path
+          description: The username that needs to be deleted
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successfully deleted.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+      - userAccess:
+        - write
+  /group:
+    post:
+      tags:
+        - group
+      summary: Create group
+      description: Can be done by logged in user, which get the ownership of the group
+      operationId: createGroup
+      requestBody:
+        description: Create group object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/group_creation'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/group_creation'
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/OK_group'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+      - userAccess:
+        - write
+  /group/groups:
+    get:
+      tags:
+        - group
+      summary: Get groups, where the logged in user is a member
+      description: ''
+      operationId: getUserGroups
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/groupInfo'    
+
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/groupInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+      - userAccess:
+        - read
+  /group/groups/{group_id}:         
+    get:
+      tags:
+        - group
+      summary: Get group info
+      description: Can be done by logged in group member
+      operationId: getGroupInfo
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          $ref: '#/components/responses/OK_group'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'    
+      security:
+      - userAccess:
+        - read
+      - groupAccess:
+        - read     
+    put:
+      tags:
+        - group
+      summary: Update group name
+      description: Can be done by logged in owner
+      operationId: updateGroupName
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          $ref: '#/components/responses/OK_group'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'    
+      security:
+      - userAccess:
+        - read
+        - write
+      - groupAccess:
+        - owner     
+    delete:
+      tags:
+        - group
+      summary: Delete group
+      description: Can be done by logged in owner or admin
+      operationId: deleteGroup
+      parameters:
+        - name: group_id
+          in: path
+          description: The group id that needs to be deleted
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successfully deleted group.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'  
+      security:
+      - userAccess:
+        - read
+      - groupAccess:
+        - owner
+  /group/groups/{group_id}/members:
+    get:
+      tags:
+        - group
+      summary: Get all members of the group
+      description: 'Can be done by member of this group'
+      operationId: getGroupMembersList
+      parameters:
+        - name: group_id
+          in: path
+          description: The id of the group.
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/groupMember'          
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/groupMember'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+      - userAccess:
+        - read
+      - groupAccess:
+        - read
+    post:
+      tags:
+        - group
+      summary: Add an existing user to the group
+      description: 'Can be done by owner'
+      operationId: addMemberGroup
+      parameters:
+        - name: user_id
+          in: query
+          description: User Id
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: group_id
+          in: path
+          description: The group id that needs to be deleted
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/groupMember'          
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/groupMember'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+      - userAccess:
+        - read
+      - groupAccess:
+        - owner
+    delete:
+      tags:
+        - group
+      summary: Kick the member out from group
+      description: 'Can be done by owner'
+      operationId: deleteGroupMember
+      parameters:
+        - name: user_id
+          in: query
+          description: Member's User Id
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: group_id
+          in: path
+          description: The group id that needs to be deleted
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successfully deleted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+      - userAccess:
+        - read
+      - groupAccess:
+        - owner
+  /group/groups/{group_id}/members/{user_id}:
+    get:
+      tags:
+        - group
+      summary: Get the group member
+      description: 'Can be done by member of this group'
+      operationId: getGroupMember
+      parameters:
+        - name: group_id
+          in: path
+          description: The id of the group.
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: user_id
+          in: path
+          description: Member's user id.
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/groupMember'          
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/groupMember'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+      - userAccess:
+        - read
+      - groupAccess:
+        - read
+  /group/{group_id}/join:
+    put:
+      tags:
+        - group
+      summary: Join to an existing group
+      description: ''
+      operationId: joinGroup
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: password
+          in: query
+          description: password to enter the group
+          required: true
+          schema:
+            type: string
+            example: som3_unique_Pass_setByOWner123
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/groupMember'          
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/groupMember'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      security:
+      - userAccess:
+        - write
+  /group/{group_id}/purchases:
+    get:
+      tags:
+        - group
+      summary: Get purchases, where the logged in user can make transfers
+      description: ''
+      operationId: getUserPurchases
+      parameters: 
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/purchaseInfo'          
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/purchaseInfo'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      security:
+      - userAccess:
+        - read
+      - groupAccess:
+        - read
+      - purchaseAccess:
+        - read
+  /group/{group_id}/purchases/purchase:
+    post:
+      tags:
+        - group
+      summary: Create purchase
+      description: Can be done by logged in group member
+      operationId: createPurchase
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Create purchase object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/purchaseInfo'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/purchaseInfo'
+        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/OK_purchase'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+      security:
+      - userAccess:
+        - read
+      - groupAccess:
+        - read
+  /group/{group_id}/purchases/{purchase_id}:         
+    put:
+      tags:
+        - group
+      summary: Update purchase
+      description: Can be done by logged in owner
+      operationId: updatePurchase
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: purchase_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          $ref: '#/components/responses/OK_purchase'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'  
+      security:
+      - userAccess:
+        - read
+      - groupAccess:
+        - read
+      - purchaseAccess:
+        - owner
+    delete:
+      tags:
+        - group
+      summary: Delete purchase
+      description: Can be done by logged in owner or admin
+      operationId: deletePurchase
+      parameters:
+        - name: group_id
+          in: path
+          description: The group id
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: purchase_id
+          in: path
+          description: The purchase id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successfully deleted.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' 
+      security:
+      - userAccess:
+        - read
+      - groupAccess:
+        - read
+      - purchaseAccess:
+        - owner   
+  /group/{group_id}/purchases/{purchase_id}/members:
+    get:
+      tags:
+        - group
+      summary: Get all users who can transfer money for this purchase
+      description: ''
+      operationId: getPurchaseMembersList
+      parameters:
+        - name: group_id
+          in: path
+          description: The group id.
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: purchase_id
+          in: path
+          description: The id of the purchase.
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/purchaseMember'          
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/purchaseMember'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'     
+      security:
+      - userAccess:
+        - read
+      - groupAccess:
+        - read
+      - purchaseAccess:
+        - read    
+    post:
+      tags:
+        - group
+      summary: Permit the existent group member to transfer money in/out the purchase fund
+      description: ''
+      operationId: addMemberPurchase
+      parameters:
+        - name: group_id
+          in: path
+          description: The group id.
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: purchase_id
+          in: path
+          description: The id of the purchase.
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: user_id
+          in: query
+          description: User Id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          $ref: '#/components/responses/OK_purchase'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' 
+      security:
+      - userAccess:
+        - read
+      - groupAccess:
+        - read
+      - purchaseAccess:
+        - owner   
+    delete:
+      tags:
+        - group
+      summary: Forbid the user to transfer in/out the purchase fund
+      description: ''
+      operationId: deletePurchaseMember
+      parameters:
+        - name: group_id
+          in: path
+          description: The group id.
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: purchase_id
+          in: path
+          description: The id of the purchase.
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: user_id
+          in: query
+          description: Member's User Id
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successfully deleted.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' 
+      security:
+      - userAccess:
+        - read
+      - groupAccess:
+        - read
+      - purchaseAccess:
+        - owner   
+  /group/{group_id}/purchases/{purchase_id}/transfers:
+    get:
+      tags:
+        - group
+      summary: Get all money transfers for this purchase
+      description: ''
+      operationId: getTransfersList
+      parameters:
+        - name: group_id
+          in: path
+          description: The group id.
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: purchase_id
+          in: path
+          description: The id of the purchase.
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/transfer'          
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/transfer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' 
+      security:
+      - userAccess:
+        - read
+      - groupAccess:
+        - read
+      - purchaseAccess:
+        - read
+    post:
+      tags: 
+        - group
+      summary: Make a transfer for this purchase
+      description: ''
+      operationId: makeTransfer
+      parameters:
+        - name: group_id
+          in: path
+          description: The group id.
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: purchase_id
+          in: path
+          description: The id of the purchase.
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Create transfer object
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/transfer'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/transfer'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/transfer'          
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/transfer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound' 
+      security:
+      - userAccess:
+        - read
+      - groupAccess:
+        - read
+      - purchaseAccess:
+        - write
+        
+components:
+  schemas:
+    user_creation: 
+      type: object
+      properties:
+        username:
+          type: string
+          example: batiukmaks3000
+        password:
+          type: string
+          example: str0ng_Passw0ord
+        first_name:
+          type: string
+          example: Maksym
+        last_name:
+          type: string
+          example: Batiuk
+        card_number:
+          type: string
+          example: 1234567812345678
+        phone:
+          type: string
+          example: +380953702395
+        email:
+          type: string
+          example: youremail@gmail.com
+      xml:
+        name: user_creation
+    user_fullinfo: 
+      type: object
+      properties:
+        id: 
+          type: integer
+          format: int64
+          example: 13
+        username:
+          type: string
+          example: batiukmaks3000
+        password:
+          type: string
+          example: str0ng_Passw0ord
+        first_name:
+          type: string
+          example: Maksym
+        last_name:
+          type: string
+          example: Batiuk
+        card_number:
+          type: string
+          example: 1234567812345678
+        phone:
+          type: string
+          example: +380953702395
+        email:
+          type: string
+          example: youremail@gmail.com
+      xml:
+        name: user_fullinfo
+    user_personalinfo: 
+      type: object
+      properties:
+        id: 
+          type: integer
+          format: int64
+          example: 13
+        username:
+          type: string
+          example: batiukmaks3000
+        first_name:
+          type: string
+          example: Maksym
+        last_name:
+          type: string
+          example: Batiuk
+        phone:
+          type: string
+          example: +380953702395
+        email:
+          type: string
+          example: youremail@gmail.com
+      xml:
+        name: user_personalinfo
+    group_creation:
+      type: object
+      properties:
+        name:
+          type: string
+        password:
+          type: string
+          example: som3_unique_Pass_setByOWner123
+      xml:
+        name: group_creation
+    groupInfo:
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 34
+        owner_id:
+          type: integer
+          format: int64
+          description: Group creator's (owner's) user_id
+          example: 56
+        name:
+          type: string
+        password:
+          type: string
+          example: som3_unique_Pass_setByOWner123
+      xml:
+        name: groupInfo
+    groupMember:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          format: int64
+          example: 13
+        group_id:
+          type: integer
+          format: int64
+          example: 34
+        owner_id: 
+          type: integer
+          format: int64
+          example: 34
+        personal_info:
+          $ref: '#/components/schemas/user_personalinfo'
+      xml:
+        name: groupMember
+    purchaseInfo:
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 34
+        group_id:
+          type: integer
+          format: int64
+          example: 3
+        owner_id:
+          type: integer
+          format: int64
+          example: 13
+        name:
+          type: string
+          example: Fridge
+        cost:
+          type: number
+          format: float
+      xml:
+        name: purchase
+    purchaseMember:
+      type: object
+      properties:
+        user_id:
+          type: integer
+          format: int64
+          example: 13
+        group_id:
+          type: integer
+          format: int64
+          example: 29
+        purchase_id: 
+          type: integer
+          format: int64
+          example: 103
+        personal_info:
+          $ref: '#/components/schemas/user_personalinfo'
+    transfer:
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 23
+        amount: 
+          type: number
+          format: float
+          example: 320.5
+        user_id:
+          type: integer
+          format: int64
+          example: 34
+        type_id:
+          type: integer
+          format: int32
+          example: 2
+        purchase_id:
+          type: integer
+          format: int64
+          example: 47
+      xml:
+        name: transfer
+    error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+      required:
+        - code
+        - message
+  responses:
+    OK_group:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/groupInfo'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/groupInfo'
+    OK_purchase:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/purchaseInfo'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/purchaseInfo'
+    BadRequest:
+      description: Invalid input.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/error'
+    Unauthorized:
+      description: Unauthorized user.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/error'
+    Forbidden:
+      description: The user does not have the necessary permissions for the resource.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/error'
+    NotFound:
+      description: The resourse is not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/error'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/error'
+  securitySchemes:
+    userAccess:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: /user/login
+          tokenUrl: https://example.com/oauth/token
+          scopes:
+            read: Grants read access
+            write: Grants write access
+            admin: Grants access to admin operations
+    groupAccess:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: /user/login
+          tokenUrl: https://example.com/oauth/token
+          scopes:
+            read: Grants read access
+            owner: Grants access to owner operations
+            admin: Grants access to admin operations
+    purchaseAccess:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: /user/login
+          tokenUrl: https://example.com/oauth/token
+          scopes:
+            read: Grants read access
+            write: Grants write access
+            owner: Grants access to owner operations
+            admin: Grants access to admin operations
