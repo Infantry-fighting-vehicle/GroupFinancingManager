@@ -15,9 +15,5 @@ pipenv shell
 ```
 gunicorn main:app
 ```
-or
-```
-waitress-serve --listen=*:8000 project.main:app
-```
 
 ##### Python 3.8.14 + pipenv
