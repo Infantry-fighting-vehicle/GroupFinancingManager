@@ -13,6 +13,7 @@ info:
 servers:
   - url: https://api.server.test/v1
   - url: http://127.0.0.1:8000
+  - url: http://127.0.0.1:5000
 tags:
   - name: user
     description: Operations about user
@@ -75,10 +76,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/user_fullinfo'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/user_fullinfo'
+                $ref: "#/components/schemas/token"
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -96,7 +94,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
       security:
-        - userAccess:
+        - accessToken:
           - read
   /user/{username}:
     get:
@@ -130,7 +128,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
       security:
-        - userAccess:
+        - accessToken:
           - read
     put:
       tags:
@@ -180,7 +178,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
       security:
-      - userAccess:
+      - accessToken:
         - write
     delete:
       tags:
@@ -207,7 +205,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
       security:
-      - userAccess:
+      - accessToken:
         - write
   /group:
     post:
@@ -234,13 +232,13 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
       security:
-      - userAccess:
+      - accessToken:
         - write
-  /group/groups:
+  /group/list:
     get:
       tags:
         - group
-      summary: Get groups, where the logged in user is a member
+      summary: Get groups avaliable for user
       description: ''
       operationId: getUserGroups
       parameters: []
@@ -264,9 +262,9 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
       security:
-      - userAccess:
+      - accessToken:
         - read
-  /group/groups/{group_id}:         
+  /group/{group_id}:         
     get:
       tags:
         - group
@@ -292,10 +290,8 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'    
       security:
-      - userAccess:
+      - accessToken:
         - read
-      - groupAccess:
-        - read     
     put:
       tags:
         - group
@@ -309,6 +305,15 @@ paths:
           schema:
             type: integer
             format: int64
+      requestBody:
+        description: Update an existent group
+        content:
+          application/json:
+            schema:
+              properties:
+                name:
+                  type: string
+                  example: template name
       responses:
         '200':
           $ref: '#/components/responses/OK_group'
@@ -321,11 +326,9 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'    
       security:
-      - userAccess:
+      - accessToken:
         - read
         - write
-      - groupAccess:
-        - owner     
     delete:
       tags:
         - group
@@ -350,11 +353,9 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'  
       security:
-      - userAccess:
+      - accessToken:
         - read
-      - groupAccess:
-        - owner
-  /group/groups/{group_id}/members:
+  /group/{group_id}/members:
     get:
       tags:
         - group
@@ -390,9 +391,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
       security:
-      - userAccess:
-        - read
-      - groupAccess:
+      - accessToken:
         - read
     post:
       tags:
@@ -432,10 +431,8 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
       security:
-      - userAccess:
+      - accessToken:
         - read
-      - groupAccess:
-        - owner
     delete:
       tags:
         - group
@@ -467,52 +464,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
       security:
-      - userAccess:
-        - read
-      - groupAccess:
-        - owner
-  /group/groups/{group_id}/members/{user_id}:
-    get:
-      tags:
-        - group
-      summary: Get the group member
-      description: 'Can be done by member of this group'
-      operationId: getGroupMember
-      parameters:
-        - name: group_id
-          in: path
-          description: The id of the group.
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - name: user_id
-          in: path
-          description: Member's user id.
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/groupMember'          
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/groupMember'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-      security:
-      - userAccess:
-        - read
-      - groupAccess:
+      - accessToken:
         - read
   /group/{group_id}/join:
     put:
@@ -528,9 +480,9 @@ paths:
           schema:
             type: integer
             format: int64
-        - name: password
+        - name: secret_key
           in: query
-          description: password to enter the group
+          description: secret_key to enter the group
           required: true
           schema:
             type: string
@@ -552,7 +504,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
       security:
-      - userAccess:
+      - accessToken:
         - write
   /group/{group_id}/purchases:
     get:
@@ -587,11 +539,7 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
       security:
-      - userAccess:
-        - read
-      - groupAccess:
-        - read
-      - purchaseAccess:
+      - accessToken:
         - read
   /group/{group_id}/purchases/purchase:
     post:
@@ -627,9 +575,7 @@ paths:
         '403':
           $ref: '#/components/responses/Forbidden'
       security:
-      - userAccess:
-        - read
-      - groupAccess:
+      - accessToken:
         - read
   /group/{group_id}/purchases/{purchase_id}:         
     put:
@@ -668,12 +614,8 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'  
       security:
-      - userAccess:
+      - accessToken:
         - read
-      - groupAccess:
-        - read
-      - purchaseAccess:
-        - owner
     delete:
       tags:
         - group
@@ -707,12 +649,8 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound' 
       security:
-      - userAccess:
+      - accessToken:
         - read
-      - groupAccess:
-        - read
-      - purchaseAccess:
-        - owner   
   /group/{group_id}/purchases/{purchase_id}/members:
     get:
       tags:
@@ -758,12 +696,8 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'     
       security:
-      - userAccess:
+      - accessToken:
         - read
-      - groupAccess:
-        - read
-      - purchaseAccess:
-        - read    
     post:
       tags:
         - group
@@ -804,12 +738,8 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound' 
       security:
-      - userAccess:
+      - accessToken:
         - read
-      - groupAccess:
-        - read
-      - purchaseAccess:
-        - owner   
     delete:
       tags:
         - group
@@ -850,12 +780,8 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound' 
       security:
-      - userAccess:
+      - accessToken:
         - read
-      - groupAccess:
-        - read
-      - purchaseAccess:
-        - owner   
   /group/{group_id}/purchases/{purchase_id}/transfers:
     get:
       tags:
@@ -901,11 +827,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound' 
       security:
-      - userAccess:
-        - read
-      - groupAccess:
-        - read
-      - purchaseAccess:
+      - accessToken:
         - read
     post:
       tags: 
@@ -957,12 +879,8 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound' 
       security:
-      - userAccess:
+      - accessToken:
         - read
-      - groupAccess:
-        - read
-      - purchaseAccess:
-        - write
         
 components:
   schemas:
@@ -992,6 +910,15 @@ components:
           example: youremail@gmail.com
       xml:
         name: user_creation
+    token:
+      type: object
+      properties:
+        accessToken:
+          type: 'string'
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+        refreshToken:
+          type: 'string'
+          example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
     user_fullinfo: 
       type: object
       properties:
@@ -1051,9 +978,6 @@ components:
       properties:
         name:
           type: string
-        password:
-          type: string
-          example: som3_unique_Pass_setByOWner123
       xml:
         name: group_creation
     groupInfo:
@@ -1069,7 +993,7 @@ components:
           example: 56
         name:
           type: string
-        password:
+        secret_key:
           type: string
           example: som3_unique_Pass_setByOWner123
       xml:
@@ -1222,34 +1146,7 @@ components:
           schema:
             $ref: '#/components/schemas/error'
   securitySchemes:
-    userAccess:
-      type: oauth2
-      flows:
-        authorizationCode:
-          authorizationUrl: /user/login
-          tokenUrl: https://example.com/oauth/token
-          scopes:
-            read: Grants read access
-            write: Grants write access
-            admin: Grants access to admin operations
-    groupAccess:
-      type: oauth2
-      flows:
-        authorizationCode:
-          authorizationUrl: /user/login
-          tokenUrl: https://example.com/oauth/token
-          scopes:
-            read: Grants read access
-            owner: Grants access to owner operations
-            admin: Grants access to admin operations
-    purchaseAccess:
-      type: oauth2
-      flows:
-        authorizationCode:
-          authorizationUrl: /user/login
-          tokenUrl: https://example.com/oauth/token
-          scopes:
-            read: Grants read access
-            write: Grants write access
-            owner: Grants access to owner operations
-            admin: Grants access to admin operations
+    accessToken:
+      type: apiKey  
+      in: header
+      name: Authorization

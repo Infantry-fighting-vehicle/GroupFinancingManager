@@ -9,6 +9,9 @@ gunicorn = "*"
 mysql = "*"
 alembic = "*"
 mysql-connector-python = "*"
+bcrypt = "*"
+marshmallow = "*"
+pyjwt = "*"
 
 [dev-packages]
 

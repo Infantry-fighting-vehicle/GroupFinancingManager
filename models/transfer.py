@@ -1,14 +1,6 @@
-from sqlalchemy import create_engine, Column, Integer, Float, String, ForeignKey
-from sqlalchemy.orm import declarative_base, sessionmaker, relationship
+from sqlalchemy import Column, Integer, Float, ForeignKey
 
-# import sqlalchemy
-from config.db_connection_info import DB_URL
-
-engine = create_engine(DB_URL)
-BaseModel = declarative_base()
-
-SessionFactory = sessionmaker(bind=engine)
-Session = SessionFactory()
+from models import BaseModel
 
 class Transfer(BaseModel):
     __tablename__ = "transfers"

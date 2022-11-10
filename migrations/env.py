@@ -22,8 +22,9 @@ config.set_section_option(
 # import sys
 # sys.path.append('../GroupFinancingManager')
 from models import BaseModel
+
 target_metadata = BaseModel.metadata
-#target_metadata = None
+
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -48,6 +49,7 @@ def run_migrations_offline() -> None:
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
+        compare_type=True,
         dialect_opts={"paramstyle": "named"},
     )
 
@@ -70,7 +72,9 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata,
+            compare_type=True
         )
 
         with context.begin_transaction():

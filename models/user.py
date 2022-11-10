@@ -1,22 +1,15 @@
-from sqlalchemy import create_engine, Column, Integer, Float, String, ForeignKey
-from sqlalchemy.orm import declarative_base, sessionmaker, relationship
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import relationship
 
-# import sqlalchemy
-from config.db_connection_info import DB_URL
-from models.group import Group
-from models.membership import Membership
-from models.purchase import Purchase
-from models.transfer import Transfer
-
-engine = create_engine(DB_URL)
-BaseModel = declarative_base()
+from models import Group, Membership, Purchase, Transfer, BaseModel
+from marshmallow import Schema, fields
 
 class User(BaseModel):
     __tablename__ = "users"
 
     id = Column('user_id', Integer, primary_key=True)
     username = Column(String(45), nullable=False)
-    password = Column(String(45), nullable=False)
+    password = Column(String(120), nullable=False)
     first_name = Column(String(45), nullable=False)
     last_name = Column(String(45), nullable=False)
     card_number = Column(String(45), nullable=False)
@@ -37,3 +30,17 @@ class User(BaseModel):
                f"card_number: {self.card_number}\n" \
                f"phone: {self.phone}\n" \
                f"email: {self.email}\n"
+
+class UserCardSerializer(Schema):
+    username = fields.String()
+    first_name = fields.String()
+    last_name = fields.String()
+
+class UserInsensetiveSerializer(UserCardSerializer):
+    card_number = fields.String()
+    phone = fields.String()
+    email = fields.Email()
+
+class UserSerializer(UserInsensetiveSerializer):
+    id = fields.Number()
+    password = fields.String()

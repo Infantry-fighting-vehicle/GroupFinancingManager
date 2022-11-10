@@ -3,6 +3,7 @@ from api import *
 
 app = Flask(__name__)
 app.register_blueprint(account_api, url_prefix='/user')
+app.register_blueprint(group_api, url_prefix='/group')
 
 @app.after_request
 def add_cors_headers(response):
