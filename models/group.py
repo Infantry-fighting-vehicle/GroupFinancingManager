@@ -11,7 +11,7 @@ class Group(BaseModel):
     id = Column('group_id', Integer, primary_key=True)
     owner_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
     name = Column(String(45), nullable=False)
-    secret_key = Column(String(45), nullable=False)
+    secret_key = Column(String(45), nullable=False, unique=True)
 
     members = relationship('Membership', backref='group')
     purchases = relationship('Purchase', backref='group_owner')

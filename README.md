@@ -16,4 +16,7 @@ pipenv shell
 gunicorn main:app
 ```
 
+### implementation wishes:
+- transfer ownership
+
 ##### Python 3.8.14 + pipenv
