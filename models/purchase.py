@@ -1,3 +1,4 @@
+from marshmallow import Schema, fields
 from sqlalchemy import create_engine, Column, Integer, Float, String, ForeignKey
 from sqlalchemy.orm import relationship
 
@@ -21,3 +22,7 @@ class Purchase(BaseModel):
                f"owner_id: {self.owner_id}\n" \
                f"name: {self.name}\n" \
                f"cost: {self.cost}\n" 
+
+class PurchaseCreateSerializer(Schema):
+    name = fields.String()
+    cost = fields.Number()

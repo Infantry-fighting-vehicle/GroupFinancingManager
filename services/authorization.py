@@ -6,6 +6,9 @@ from models.service.Token import Token
 from models.user import User, UserSerializer
 import jwt
 
+# token to test:
+# eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU0NDc4ODc2LCJqdGkiOiJiYmQ0ZGFkNzUxYWU0YWM5OTg4YjUwODMzYTNiODhmNiIsInVzZXJfaWQiOjE2fQ.4cWe2RWrg5A2TC7BSSjGKTxuTGi2bSsxwvbjP-8cRdI
+
 def authorize(role = "anybody"):
     def decoration(func):
         def inner(*args, **kwargs):

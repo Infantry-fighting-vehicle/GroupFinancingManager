@@ -14,6 +14,7 @@ servers:
   - url: https://api.server.test/v1
   - url: http://127.0.0.1:8000
   - url: http://127.0.0.1:5000
+  - url: http://127.0.0.1:9090
 tags:
   - name: user
     description: Operations about user
@@ -353,13 +354,6 @@ paths:
       description: 'Can be done by owner'
       operationId: addMemberGroup
       parameters:
-        - name: user_id
-          in: query
-          description: User Id
-          required: true
-          schema:
-            type: integer
-            format: int64
         - name: group_id
           in: path
           description: The group id that needs to be deleted
@@ -367,15 +361,25 @@ paths:
           schema:
             type: integer
             format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: number
+                example: 1
       responses:
         '200':
           description: Successful operation
           content:
             application/json:
               schema:
-                properties:
-                  invitation_status:
-                    type: number
+                type: array
+                items:
+                  properties:
+                    invitation_status:
+                      type: number
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -646,7 +650,7 @@ paths:
                   properties:
                     user:
                       $ref: '#/components/schemas/user_personalinfo'
-                    deposit:
+                    amount:
                       type: number
         '400':
           $ref: '#/components/responses/BadRequest'

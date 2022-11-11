@@ -1,6 +1,11 @@
+import code
 from crypt import methods
+from distutils.log import error
+from tokenize import group
 from unicodedata import name
+from webbrowser import get
 from flask import Blueprint, request, Response
+from mysqlx import Session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from models.service import error_codes
@@ -62,3 +67,130 @@ def group_management(group_id):
     Session.commit()
 
     return GroupSerializer().dump(group)
+
+@group_api.route('/<group_id>/send_invitation', methods=['POST'])
+@authorize
+def sent_user_invitation(group_id):
+    Session = get_database_session()
+    user = get_authorized_user()
+    group = Session.query(Group).filter(Group.id == group_id).first()
+    if group is None:
+        return {
+            'code': error_codes.NOT_FOUND,
+            'message': 'Group not found' 
+        }, 404
+    elif user.id != group.owner_id:
+        return {
+            'code': error_codes.UNAUTHORIZED,
+            'message': 'Not enough priviliges'
+        }, 403
+
+    invitations = []
+    for user_id in request.get_json():
+        user_membership = Membership(
+            user_id = user_id,
+            group_id = group_id,
+            status = UserStatus.UNACCEPTED._value_
+        )
+        invitations.append(UserStatus.UNACCEPTED.name)
+        Session.add(user_membership)
+    Session.commit()
+
+    return invitations
+
+@group_api.route('/<group_id>/join', methods=['POST'])
+@authorize
+def join_group(group_id):
+    Session = get_database_session()
+    user = get_authorized_user()
+    secret_key = request.args.get('secret_key')
+    group = Session.query(Group).filter(Group.id == group_id).first()
+
+    if group is None:
+        return {
+            'code': error_codes.NOT_FOUND,
+            'message': 'Group not found' 
+        }, 404
+
+    user_membership = Session.query(Membership).filter(Membership.user_id == user.id).first()
+    if user_membership is None:
+        user_membership = Membership(
+            group_id = group_id,
+            user_id = user.id,
+            status = UserStatus.ACCEPTED._value_
+        )
+        Session.add(user_membership)
+    else:
+        user_membership.status = UserStatus.ACCEPTED._value_
+    
+    Session.commit()
+
+    return group.name
+
+
+@group_api.route('/<group_id>/kick', methods=['DELETE'])
+@authorize
+def kick_users(group_id):
+    Session = get_database_session()
+    user = get_authorized_user()
+    group = Session.query(Group).filter(Group.id == group_id).first()
+    if group is None:
+        return {
+            'code': error_codes.NOT_FOUND,
+            'message': 'Group not found' 
+        }, 404
+    elif user.id != group.owner_id:
+        return {
+            'code': error_codes.UNAUTHORIZED,
+            'message': 'Not enough priviliges'
+        }, 403
+
+    invitations = []
+    for user_id in request.get_json():
+        user_membership = Session.query(Membership).filter(Membership.user_id == user_id)
+        Session.remove(user_membership)
+    Session.commit()
+
+    return {
+        'code': error_codes.SUCCESS,
+        'message': 'Successfully deleted'
+    }
+
+@group_api.route('/<group_id>/purchase', methods=['POST'])
+@authorize
+def purchase_create(group_id):
+    Session = get_database_session()
+    user = get_authorized_user()
+
+    purchase = PurchaseCreateSerializer().load(request.get_json())
+
+    new_purchase = Purchase(
+        group_id = group_id,
+        owner_id = user.id,
+        name = purchase['name'],
+        cost = purchase['cost']
+    )
+    Session.add(new_purchase)
+    Session.commit()
+
+    return purchase
+
+
+@group_api.route('/<group_id>/purchase', methods=['DELETE'])
+@authorize
+def purchase_create(group_id):
+    Session = get_database_session()
+    user = get_authorized_user()
+
+    purchase = PurchaseCreateSerializer().load(request.get_json())
+
+    new_purchase = Purchase(
+        group_id = group_id,
+        owner_id = user.id,
+        name = purchase['name'],
+        cost = purchase['cost']
+    )
+    Session.add(new_purchase)
+    Session.commit()
+
+    return purchase
