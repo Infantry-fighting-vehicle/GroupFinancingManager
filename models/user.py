@@ -44,3 +44,14 @@ class UserInsensetiveSerializer(UserCardSerializer):
 class UserSerializer(UserInsensetiveSerializer):
     id = fields.Number()
     password = fields.String()
+
+class UserPublicInfoSerializer(Schema):
+    id = fields.Number()
+    username = fields.String()
+    first_name = fields.String()
+    last_name = fields.String()
+    phone = fields.String()
+    email = fields.Email()
+
+class PurchaseMemberInfo(UserPublicInfoSerializer):
+    amount = fields.Number()

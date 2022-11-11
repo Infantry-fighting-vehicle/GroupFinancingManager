@@ -26,3 +26,7 @@ class Purchase(BaseModel):
 class PurchaseCreateSerializer(Schema):
     name = fields.String()
     cost = fields.Number()
+    
+class PurchaseInfoSerializer(PurchaseCreateSerializer):
+    id = fields.Integer()
+    balance = fields.Number()

@@ -663,143 +663,143 @@ paths:
       security:
       - accessToken:
         - read
-  /group/{group_id}/purchases/{purchase_id}/transfers:
-    get:
-      tags:
-        - group
-      summary: Get all money transfers for the purchase
-      description: ''
-      operationId: getTransfersList
-      parameters:
-        - name: group_id
-          in: path
-          description: The group id.
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - name: purchase_id
-          in: path
-          description: The id of the purchase.
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/transfer'          
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound' 
-      security:
-      - accessToken:
-        - read
-    post:
-      tags: 
-        - group
-      summary: Make a transfer for the purchase
-      description: ''
-      operationId: makeTransfer
-      parameters:
-        - name: group_id
-          in: path
-          description: The group id.
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - name: purchase_id
-          in: path
-          description: The id of the purchase.
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
-        description: Create transfer object
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/transferCreation'
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/transfer'          
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound' 
-      security:
-      - accessToken:
-        - read
-    delete:
-      tags: 
-        - group
-      summary: Delete a transfer from the purchase
-      description: ''
-      operationId: makeTransfer
-      parameters:
-        - name: group_id
-          in: path
-          description: The group id.
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - name: purchase_id
-          in: path
-          description: The id of the purchase.
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
-        description: Create transfer object
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                type: number
-                example: 1
-        required: true
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/error'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound' 
-      security:
-      - accessToken:
-        - read
+  # /group/{group_id}/purchases/{purchase_id}/transfers:
+  #   get:
+  #     tags:
+  #       - group
+  #     summary: Get all money transfers for the purchase
+  #     description: ''
+  #     operationId: getTransfersList
+  #     parameters:
+  #       - name: group_id
+  #         in: path
+  #         description: The group id.
+  #         required: true
+  #         schema:
+  #           type: integer
+  #           format: int64
+  #       - name: purchase_id
+  #         in: path
+  #         description: The id of the purchase.
+  #         required: true
+  #         schema:
+  #           type: integer
+  #           format: int64
+  #     responses:
+  #       '200':
+  #         description: Successful operation
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: array
+  #               items:
+  #                 $ref: '#/components/schemas/transfer'          
+  #       '400':
+  #         $ref: '#/components/responses/BadRequest'
+  #       '401':
+  #         $ref: '#/components/responses/Unauthorized'
+  #       '403':
+  #         $ref: '#/components/responses/Forbidden'
+  #       '404':
+  #         $ref: '#/components/responses/NotFound' 
+  #     security:
+  #     - accessToken:
+  #       - read
+  #   post:
+  #     tags: 
+  #       - group
+  #     summary: Make a transfer for the purchase
+  #     description: ''
+  #     operationId: makeTransfer
+  #     parameters:
+  #       - name: group_id
+  #         in: path
+  #         description: The group id.
+  #         required: true
+  #         schema:
+  #           type: integer
+  #           format: int64
+  #       - name: purchase_id
+  #         in: path
+  #         description: The id of the purchase.
+  #         required: true
+  #         schema:
+  #           type: integer
+  #           format: int64
+  #     requestBody:
+  #       description: Create transfer object
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/transferCreation'
+  #       required: true
+  #     responses:
+  #       '200':
+  #         description: Successful operation
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/transfer'          
+  #       '400':
+  #         $ref: '#/components/responses/BadRequest'
+  #       '401':
+  #         $ref: '#/components/responses/Unauthorized'
+  #       '403':
+  #         $ref: '#/components/responses/Forbidden'
+  #       '404':
+  #         $ref: '#/components/responses/NotFound' 
+  #     security:
+  #     - accessToken:
+  #       - read
+  #   delete:
+  #     tags: 
+  #       - group
+  #     summary: Delete a transfer from the purchase
+  #     description: ''
+  #     operationId: makeTransfer
+  #     parameters:
+  #       - name: group_id
+  #         in: path
+  #         description: The group id.
+  #         required: true
+  #         schema:
+  #           type: integer
+  #           format: int64
+  #       - name: purchase_id
+  #         in: path
+  #         description: The id of the purchase.
+  #         required: true
+  #         schema:
+  #           type: integer
+  #           format: int64
+  #     requestBody:
+  #       description: Create transfer object
+  #       content:
+  #         application/json:
+  #           schema:
+  #             type: array
+  #             items:
+  #               type: number
+  #               example: 1
+  #       required: true
+  #     responses:
+  #       '200':
+  #         description: Successful operation
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/error'
+  #       '400':
+  #         $ref: '#/components/responses/BadRequest'
+  #       '401':
+  #         $ref: '#/components/responses/Unauthorized'
+  #       '403':
+  #         $ref: '#/components/responses/Forbidden'
+  #       '404':
+  #         $ref: '#/components/responses/NotFound' 
+  #     security:
+  #     - accessToken:
+  #       - read
         
 components:
   schemas:

@@ -1,10 +1,5 @@
-import code
-from crypt import methods
-from distutils.log import error
-from tokenize import group
-from unicodedata import name
-from webbrowser import get
-from flask import Blueprint, request, Response
+
+from flask import jsonify, Blueprint, request, Response
 from mysqlx import Session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
@@ -178,19 +173,66 @@ def purchase_create(group_id):
 
 @group_api.route('/<group_id>/purchase', methods=['DELETE'])
 @authorize
-def purchase_create(group_id):
+def purchase_delete(group_id):
+    # Session = get_database_session()
+    # user = get_authorized_user()
+
+    purchases = request.json
+    for purchase_id in purchases:
+        Session.query(Purchase).filter(Purchase.id==purchase_id).delete()
+    Session.commit()
+
+    return {'Message': 'Success', 'Code': 200}
+
+@group_api.route('/<group_id>/purchase/<purchase_id>', methods=['PUT'])
+@authorize
+def purchase_update(group_id, purchase_id):
     Session = get_database_session()
     user = get_authorized_user()
 
-    purchase = PurchaseCreateSerializer().load(request.get_json())
+    updated_info = request.json
 
-    new_purchase = Purchase(
-        group_id = group_id,
-        owner_id = user.id,
-        name = purchase['name'],
-        cost = purchase['cost']
-    )
-    Session.add(new_purchase)
+    purchase = Session.query(Purchase).filter(Purchase.id==purchase_id).first()
+    if not purchase:
+        return {'Error': 'Not found', 'Code': 404}
+    purchase.name = updated_info['name']
+    purchase.cost = updated_info['prica']
+    Session.add(purchase)
     Session.commit()
 
-    return purchase
+    purchase_schema = PurchaseInfoSerializer().dump(purchase)
+    purchase_schema['balance'] = 0
+    transfers = Session.query(Transfer).filter(Transfer.purchase_id==purchase_id).all()
+    for transfer in transfers:
+        purchase_schema['balance'] += transfer.amount
+    
+    return purchase_schema
+
+
+@group_api.route('/<group_id>/purchases/<purchase_id>/members', methods=['GET'])
+@authorize
+def purchase_members(group_id, purchase_id):
+    Session = get_database_session()
+    user = get_authorized_user()
+
+    purchase = Session.query(Purchase).filter(Purchase.id==purchase_id).first()
+    if not purchase:
+        return {'Error': 'Not found', 'Code': 404}
+    transfers = Session.query(Transfer).filter(Transfer.purchase_id==purchase_id).all()
+    users = set()
+    for transfer in transfers:
+        users.add(transfer.user_id)
+
+    purchase_member_schemas = []
+    for user_id in users:
+        purchase_member_schemas.append(PurchaseMemberInfo().dump(
+            Session.query(User).filter(User.id==user_id).first()
+        ))
+        purchase_member_schemas[-1]['amount'] = 0
+        user_purchase_transfers = Session.query(Transfer).filter(Transfer.purchase_id==purchase_id and Transfer.user_id==user_id).all()
+        for user_purchase_transfer in user_purchase_transfers:
+            purchase_member_schemas[-1]['amount'] += user_purchase_transfer.amount
+        
+    return purchase_member_schemas
+
+    
