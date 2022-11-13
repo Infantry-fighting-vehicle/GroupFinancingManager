@@ -465,36 +465,36 @@ paths:
       security:
       - accessToken:
         - read
-  /group/{group_id}/purchase/list:
-    get:
-      tags:
-        - group
-      summary: DEPRECATED Get purchases, where the logged in user can make transfers
-      description: ''
-      operationId: getUserPurchases
-      parameters: 
-        - name: group_id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/purchaseInfo'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-      security:
-      - accessToken:
-        - read
+  # /group/{group_id}/purchase/list:
+  #   get:
+  #     tags:
+  #       - group
+  #     summary: DEPRECATED Get purchases, where the logged in user can make transfers
+  #     description: ''
+  #     operationId: getUserPurchases
+  #     parameters: 
+  #       - name: group_id
+  #         in: path
+  #         required: true
+  #         schema:
+  #           type: integer
+  #           format: int64
+  #     responses:
+  #       '200':
+  #         description: Successful operation
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: array
+  #               items:
+  #                 $ref: '#/components/schemas/purchaseInfo'
+  #       '401':
+  #         $ref: '#/components/responses/Unauthorized'
+  #       '403':
+  #         $ref: '#/components/responses/Forbidden'
+  #     security:
+  #     - accessToken:
+  #       - read
   /group/{group_id}/purchase:
     post:
       tags:

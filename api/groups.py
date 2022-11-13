@@ -53,6 +53,8 @@ def group_management(group_id):
     if group is None or (request.method != 'GET' and group.owner_id != user.id):
         return { 'code': error_codes.UNAUTHORIZED, 'message': 'unauthorized access' }
 
+    # if request.method == "GET":
+        
     if request.method == "PUT":
         group_alter = GroupBasicSerializer().load(request.get_json())
         for key in group_alter.keys():
@@ -174,8 +176,8 @@ def purchase_create(group_id):
 @group_api.route('/<group_id>/purchase', methods=['DELETE'])
 @authorize
 def purchase_delete(group_id):
-    # Session = get_database_session()
-    # user = get_authorized_user()
+    Session = get_database_session()
+    user = get_authorized_user()
 
     purchases = request.json
     for purchase_id in purchases:

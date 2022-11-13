@@ -25,10 +25,10 @@ def accountList():
         email = request_data['email']
     )
 
-    Session.add(user)
+    # Session.add(user)
     Session.commit()
 
-    return user.to_dict()
+    return UserSerializer().dump(user)
 
 # takes login and password as args
 @account_api.route("login")
@@ -67,7 +67,7 @@ def getUserBytUsername(username):
         }, 404
 
     if request.method == "PUT":
-        user_alter = UserSerializer().load(request.get_json())
+        user_alter = UserInsensetiveSerializer().load(request.get_json())
         for key in user_alter.keys():
             user.__setattr__(key, user_alter[key])
     elif request.method == "DELETE":
