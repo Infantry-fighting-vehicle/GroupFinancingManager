@@ -31,6 +31,15 @@ def create_function():
 
     Session.add(new_group)
     Session.commit()
+    Session.refresh(new_group)
+
+    user_membership = Membership(
+            user_id = owner.id,
+            group_id = new_group.id,
+            status = "ACCEPTED"
+        )
+    Session.add(user_membership)
+    Session.commit()
 
     return GroupSerializer().dump(new_group)
 
@@ -97,7 +106,7 @@ def sent_user_invitation(group_id):
         user_membership = Membership(
             user_id = user_id,
             group_id = group_id,
-            status = UserStatus.UNACCEPTED._value_
+            status = UserStatus.UNACCEPTED
         )
         invitations.append(UserStatus.UNACCEPTED.name)
         Session.add(user_membership)
@@ -119,17 +128,12 @@ def join_group(group_id):
             'message': 'Group not found' 
         }, 404
 
-    user_membership = Session.query(Membership).filter(Membership.user_id == user.id).first()
-    if user_membership is None:
-        user_membership = Membership(
-            group_id = group_id,
-            user_id = user.id,
-            status = UserStatus.ACCEPTED._value_
-        )
-        Session.add(user_membership)
-    else:
-        user_membership.status = UserStatus.ACCEPTED._value_
-    
+    user_membership = Membership(
+        group_id = group_id,
+        user_id = user.id,
+        status = "ACCEPTED"
+    )
+    Session.add(user_membership)
     Session.commit()
 
     return group.name
@@ -154,8 +158,8 @@ def kick_users(group_id):
 
     invitations = []
     for user_id in request.get_json():
-        user_membership = Session.query(Membership).filter(Membership.user_id == user_id)
-        Session.remove(user_membership)
+        user_membership = Session.query(Membership).filter(Membership.user_id == user_id).first()
+        Session.delete(user_membership)
     Session.commit()
 
     return {
@@ -173,6 +177,7 @@ def purchase_create(group_id):
         Membership.user_id==user.id and
         Membership.group_id==group_id
     ).first()
+
     if not membership:
         return {
             'code': error_codes.UNAUTHORIZED,
