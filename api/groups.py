@@ -4,7 +4,7 @@ from mysqlx import Session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from models.service import error_codes
-from services.authorization import authorize, get_authorized_user
+from services.authorization import *
 
 from config.db_connection_info import DB_URL, get_database_session
 # from api.error_codes import error_codes
@@ -16,11 +16,11 @@ from services.generate_passcode import generate_passcode
 group_api = Blueprint('groups_api', __name__)
 
 @group_api.route('', methods=['POST'])
-@authorize
+@http_auth.login_required
 def create_function():
     Session = get_database_session()
     group = GroupBasicSerializer().load(request.get_json())
-    owner = get_authorized_user()
+    owner = get_current_user()
     passcode = generate_passcode()
 
     new_group = Group(
@@ -35,20 +35,20 @@ def create_function():
     return GroupSerializer().dump(new_group)
 
 @group_api.route('/list', methods=['GET'])
-@authorize
+@http_auth.login_required
 def list_avaliable_groups():
     Session = get_database_session()
-    user = get_authorized_user()
+    user = get_current_user()
     groups = Session.query(Group).filter(Group.owner_id == user.id).all()
     return GroupInsensitiveSerializer().dump(groups, many=True)
 
 
 @group_api.route('/<group_id>', methods=['GET', 'PUT', 'DELETE'])
-@authorize
+@http_auth.login_required
 def group_management(group_id):
     Session = get_database_session()
     group = Session.query(Group).filter(Group.id == group_id).first()
-    user = get_authorized_user()
+    user = get_current_user()
 
     if group is None or (request.method != 'GET' and group.owner_id != user.id):
         return { 'code': error_codes.UNAUTHORIZED, 'message': 'unauthorized access' }
@@ -56,20 +56,30 @@ def group_management(group_id):
     # if request.method == "GET":
         
     if request.method == "PUT":
+        if group.owner_id != user.id:
+            return {
+                'code': error_codes.UNAUTHORIZED,
+                'message': 'username of password is invalid'
+            }, 400
         group_alter = GroupBasicSerializer().load(request.get_json())
         for key in group_alter.keys():
             group.__setattr__(key, group_alter[key])
     elif request.method == "DELETE":
+        if group.owner_id != user.id:
+            return {
+                'code': error_codes.UNAUTHORIZED,
+                'message': 'username of password is invalid'
+            }, 400
         Session.delete(group)
     Session.commit()
 
     return GroupSerializer().dump(group)
 
 @group_api.route('/<group_id>/send_invitation', methods=['POST'])
-@authorize
+@http_auth.login_required
 def sent_user_invitation(group_id):
     Session = get_database_session()
-    user = get_authorized_user()
+    user = get_current_user()
     group = Session.query(Group).filter(Group.id == group_id).first()
     if group is None:
         return {
@@ -96,10 +106,10 @@ def sent_user_invitation(group_id):
     return invitations
 
 @group_api.route('/<group_id>/join', methods=['POST'])
-@authorize
+@http_auth.login_required
 def join_group(group_id):
     Session = get_database_session()
-    user = get_authorized_user()
+    user = get_current_user()
     secret_key = request.args.get('secret_key')
     group = Session.query(Group).filter(Group.id == group_id).first()
 
@@ -126,10 +136,10 @@ def join_group(group_id):
 
 
 @group_api.route('/<group_id>/kick', methods=['DELETE'])
-@authorize
+@http_auth.login_required
 def kick_users(group_id):
     Session = get_database_session()
-    user = get_authorized_user()
+    user = get_current_user()
     group = Session.query(Group).filter(Group.id == group_id).first()
     if group is None:
         return {
@@ -154,10 +164,20 @@ def kick_users(group_id):
     }
 
 @group_api.route('/<group_id>/purchase', methods=['POST'])
-@authorize
+@http_auth.login_required
 def purchase_create(group_id):
     Session = get_database_session()
-    user = get_authorized_user()
+    user = get_current_user()
+
+    membership = Session.query(Membership).filter(
+        Membership.user_id==user.id and
+        Membership.group_id==group_id
+    ).first()
+    if not membership:
+        return {
+            'code': error_codes.UNAUTHORIZED,
+            'message': 'Not enough priviliges'
+        }, 403
 
     purchase = PurchaseCreateSerializer().load(request.get_json())
 
@@ -174,12 +194,19 @@ def purchase_create(group_id):
 
 
 @group_api.route('/<group_id>/purchase', methods=['DELETE'])
-@authorize
+@http_auth.login_required
 def purchase_delete(group_id):
     Session = get_database_session()
-    user = get_authorized_user()
+    user = get_current_user()
+    group = Session.query(Group).filter(Group.id==group_id).first()
 
     purchases = request.json
+    for purchase_id in purchases:
+        if user.id != Session.query(Purchase).filter(Purchase.id==purchase_id).first().owner_id and user.id != group.owner_id:
+            return {
+                'code': error_codes.UNAUTHORIZED,
+                'message': 'Not enough priviliges'
+            }, 403
     for purchase_id in purchases:
         Session.query(Purchase).filter(Purchase.id==purchase_id).delete()
     Session.commit()
@@ -187,14 +214,19 @@ def purchase_delete(group_id):
     return {'Message': 'Success', 'Code': 200}
 
 @group_api.route('/<group_id>/purchase/<purchase_id>', methods=['PUT'])
-@authorize
+@http_auth.login_required
 def purchase_update(group_id, purchase_id):
     Session = get_database_session()
-    user = get_authorized_user()
-
+    user = get_current_user()
+    group = Session.query(Group).filter(Group.id==group_id).first()
+    purchase = Session.query(Purchase).filter(Purchase.id==purchase_id).first()
+    if user.id != purchase.owner_id and user.id != group.owner_id:
+        return {
+            'code': error_codes.UNAUTHORIZED,
+            'message': 'Not enough priviliges'
+        }, 403
     updated_info = request.json
 
-    purchase = Session.query(Purchase).filter(Purchase.id==purchase_id).first()
     if not purchase:
         return {'Error': 'Not found', 'Code': 404}
     purchase.name = updated_info['name']
@@ -212,10 +244,20 @@ def purchase_update(group_id, purchase_id):
 
 
 @group_api.route('/<group_id>/purchases/<purchase_id>/members', methods=['GET'])
-@authorize
+@http_auth.login_required
 def purchase_members(group_id, purchase_id):
     Session = get_database_session()
-    user = get_authorized_user()
+    user = get_current_user()
+
+    membership = Session.query(Membership).filter(
+        Membership.user_id==user.id and
+        Membership.group_id==group_id
+    ).first()
+    if not membership:
+        return {
+            'code': error_codes.UNAUTHORIZED,
+            'message': 'Not enough priviliges'
+        }, 403
 
     purchase = Session.query(Purchase).filter(Purchase.id==purchase_id).first()
     if not purchase:

@@ -1,11 +1,11 @@
 # Change `sqlalchemy.url` manually in alembic.ini
 
-dbuser = 'startup'
-dbpass = 'hû$§Ó]Çýf¬Y3~XÓ¡:/["pÖ9Ý<'
+dbuser = 'root'
+dbpass = '000000'
 dbhost = '127.0.0.1'
-dbport = '3307'
+dbport = '3306'
 dbname = 'groupfinancingmanager'
-DB_URL = "mysql+mysqlconnector://{}:{}@{}:{}/{}".format(dbuser, dbpass, dbhost, dbport, dbname)
+DB_URL = "mysql://{}:{}@{}:{}/{}".format(dbuser, dbpass, dbhost, dbport, dbname)
 
 
 from sqlalchemy import create_engine
