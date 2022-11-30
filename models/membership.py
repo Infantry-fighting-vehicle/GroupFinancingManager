@@ -14,7 +14,7 @@ class Membership(BaseModel):
     id = Column(Integer, primary_key=True)
 
     user_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
-    group_id = Column(Integer, ForeignKey('groups.group_id'), nullable=False)
+    group_id = Column(Integer, ForeignKey('groups_.group_id'), nullable=False)
     status = Column(Enum(UserStatus), default=False, nullable=False)
 
     def __str__(self):

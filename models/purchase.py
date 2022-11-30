@@ -9,7 +9,7 @@ class Purchase(BaseModel):
 
     id = Column('purchase_id', Integer, primary_key=True)
 
-    group_id = Column(Integer, ForeignKey('groups.group_id'), nullable=False)
+    group_id = Column(Integer, ForeignKey('groups_.group_id'), nullable=False)
     owner_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
 
     name = Column(String(45), nullable=False)

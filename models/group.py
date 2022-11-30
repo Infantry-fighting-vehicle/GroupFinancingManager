@@ -6,7 +6,7 @@ from marshmallow import Schema, fields
 from models import BaseModel
 
 class Group(BaseModel):
-    __tablename__ = "groups"
+    __tablename__ = "groups_"
 
     id = Column('group_id', Integer, primary_key=True)
     owner_id = Column(Integer, ForeignKey('users.user_id'), nullable=False)
