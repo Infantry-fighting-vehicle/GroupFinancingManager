@@ -1,7 +1,7 @@
 from flask import Blueprint, request, Response
 from sqlalchemy import create_engine
 from api import error_codes
-from services.authorization import authorize
+from services.authorization import authorize, generate_token, get_authorized_user
 
 from config.db_connection_info import DB_URL, get_database_session
 from models.service import error_codes
@@ -11,41 +11,50 @@ from bcrypt import checkpw, hashpw, gensalt
 Session = get_database_session()
 account_api = Blueprint('user_api', __name__)
 
-@account_api.route("", methods=["POST", "GET"])
+@account_api.route("", methods=["GET", "POST"])
 def accountList():
-    print(request.get_json())
-    request_data = request.get_json()
-    user = User(
-        username = request_data['username'],
-        password = hashpw(bytes(request_data['password'], 'utf-8'), gensalt(14)).decode(),
-        first_name = request_data['first_name'],
-        last_name = request_data['last_name'],
-        card_number = request_data['card_number'],
-        phone = request_data['phone'],
-        email = request_data['email']
-    )
+    # print(request.get_json())
+    print(request.method)
+    if request.method == "POST":
+        request_data = request.get_json()
+        user = User(
+            username = request_data['username'],
+            password = hashpw(bytes(request_data['password'], 'utf-8'), gensalt(14)).decode(),
+            first_name = request_data['first_name'],
+            last_name = request_data['last_name'],
+            card_number = request_data['card_number'],
+            phone = '',
+            email = request_data['email']
+        )
 
-    # Session.add(user)
-    Session.commit()
+        Session.add(user)
+        Session.commit()
 
-    return UserSerializer().dump(user)
+        return UserSerializer().dump(user)
+    elif request.method == "GET":
+        user = get_authorized_user()
+        if user is None:
+            return {
+                'code': error_codes.UNAUTHORIZED,
+                'message': 'Unauthorized user access'
+            }, 401
+
+        return UserSerializer().dump(user), 200
 
 # takes login and password as args
-@account_api.route("login")
+@account_api.route("login", methods=["POST"])
 def login():
-    user = Session.query(User).filter(User.username == request.args['username']).first()
+    request_data = request.get_json()
+    user: User = Session.query(User).filter(User.username == request_data['username']).first()
     if user is not None:
-        is_pass_valid = checkpw(bytes(request.args['password'], 'utf-8'), bytes(user.password, 'utf-8'))
-
-        if 'username' in request.args and 'password' in request.args and is_pass_valid:
-            return {
-                'accessToken': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
-                'refreshToken': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
-            }
+        is_pass_valid = checkpw(bytes(request_data['password'], 'utf-8'), bytes(user.password, 'utf-8'))
+        print(request_data['password'], is_pass_valid)
+        if 'username' in request_data and 'password' in request_data and is_pass_valid:
+            return generate_token(user.id)
     
     return {
         'code': error_codes.INVALID_CREDENTIALS,
-        'message': 'username of password is invalid'
+        'message': 'username or password is invalid'
     }, 400
 
 @account_api.route("logout")

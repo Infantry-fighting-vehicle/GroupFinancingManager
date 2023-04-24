@@ -45,26 +45,38 @@ paths:
                 $ref: '#/components/schemas/user_fullinfo'
         '400':
           $ref: '#/components/responses/BadRequest'
-  /user/login:
     get:
+      tags:
+        - user
+      summary: Get user
+      description: Get a new user
+      operationId: getUser
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user_fullinfo'
+        '400':
+          $ref: '#/components/responses/Unauthorized'
+      security:
+        - accessToken:
+          - read
+  /user/login:
+    post:
       tags: 
         - user
       summary: Logs user into the system
       description: ''
       operationId: loginUser
-      parameters:
-        - name: username
-          in: query
-          description: The username for login
-          required: true
-          schema:
-            type: string
-        - name: password
-          in: query
-          description: The password for login
-          required: true
-          schema:
-            type: string
+      requestBody:
+        description: Create user object
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/user_auth"
+        required: true
       responses:
         '200':
           description: Successful operation.
@@ -365,10 +377,12 @@ paths:
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: number
-                example: 1
+              properties:
+                users:
+                  type: array
+                  items:
+                    type: number
+                    example: 1
       responses:
         '200':
           description: Successful operation
@@ -389,7 +403,7 @@ paths:
       security:
       - accessToken:
         - read
-  /group/{group_id}/join:
+  /group/join:
     post:
       tags:
         - group
@@ -397,12 +411,6 @@ paths:
       description: ''
       operationId: joinGroup
       parameters:
-        - name: group_id
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
         - name: secret_key
           in: query
           description: secret_key to enter the group
@@ -445,10 +453,12 @@ paths:
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: number
-                example: 1
+              properties:
+                users:
+                  type: array
+                  items:
+                    type: number
+                    example: 1
       responses:
         '200':
           description: Successfully deleted.
@@ -803,6 +813,15 @@ paths:
         
 components:
   schemas:
+    user_auth:
+      type: object
+      properties:
+        username: 
+          type: string
+          example: batiukmaks3000
+        password:
+          type: string
+          example: str0ng_Passw0ord
     user_creation: 
       type: object
       properties:

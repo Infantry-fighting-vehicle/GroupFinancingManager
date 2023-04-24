@@ -8,6 +8,7 @@ class UserStatus(enum.Enum):
     UNACCEPTED = 0
     ACCEPTED = 1
     BANNED = 2
+    OWNER = 10
 class Membership(BaseModel):
     __tablename__ = "memberships"
 

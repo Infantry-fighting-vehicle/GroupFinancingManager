@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, Column, Integer, String
 from sqlalchemy.orm import relationship
 
-from models import Group, Membership, Purchase, Transfer, BaseModel
+from models import BaseModel
 from marshmallow import Schema, fields
 
 class User(BaseModel):
@@ -16,10 +16,9 @@ class User(BaseModel):
     phone = Column(String(45), nullable=False)
     email = Column(String(45), nullable=False)
 
-    groups = relationship(Group, backref='owner')
-    memberShips = relationship(Membership, backref='member')
-    purchases = relationship(Purchase, backref='owner')
-    transfers = relationship(Transfer, backref='owner')
+    memberShips = relationship('Membership', backref='user')
+    purchases = relationship('Purchase', backref='owner')
+    transfers = relationship('Transfer', backref='owner')
     
     def __str__(self):
         return f"id: {self.id}\n" \
@@ -43,7 +42,7 @@ class UserInsensetiveSerializer(UserCardSerializer):
 
 class UserSerializer(UserInsensetiveSerializer):
     id = fields.Number()
-    password = fields.String()
+    # password = fields.String()
 
 class UserPublicInfoSerializer(Schema):
     id = fields.Number()

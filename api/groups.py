@@ -32,14 +32,25 @@ def create_function():
     Session.add(new_group)
     Session.commit()
 
-    return GroupSerializer().dump(new_group)
+    new_membership = Membership(
+        group_id = new_group.id,
+        user_id = owner.id,
+        status = UserStatus.OWNER,
+    )
+
+    Session.add(new_membership)
+    Session.commit()
+
+    return GroupSensitiveSerialzier().dump(new_group)
 
 @group_api.route('/list', methods=['GET'])
 @authorize
 def list_avaliable_groups():
     Session = get_database_session()
     user = get_authorized_user()
-    groups = Session.query(Group).filter(Group.owner_id == user.id).all()
+    groups = Session.query(Group).outerjoin(
+        Membership, Group.id == Membership.group_id
+    ).filter(Membership.user_id == user.id).all()
     return GroupInsensitiveSerializer().dump(groups, many=True)
 
 
@@ -47,8 +58,10 @@ def list_avaliable_groups():
 @authorize
 def group_management(group_id):
     Session = get_database_session()
-    group = Session.query(Group).filter(Group.id == group_id).first()
     user = get_authorized_user()
+    group: Group = Session.query(Group).outerjoin(
+        Membership, Group.id == Membership.group_id
+    ).filter(Membership.user_id == user.id).first()
 
     if group is None or (request.method != 'GET' and group.owner_id != user.id):
         return { 'code': error_codes.UNAUTHORIZED, 'message': 'unauthorized access' }
@@ -63,7 +76,14 @@ def group_management(group_id):
         Session.delete(group)
     Session.commit()
 
-    return GroupSerializer().dump(group)
+    group_data = FullGroupSerializer().dump(group)
+    members_data = [
+        MembershipSerializer().dump(membership)['user']
+        for membership in group.members
+    ]
+    group_data['members'] = members_data
+
+    return group_data
 
 @group_api.route('/<group_id>/send_invitation', methods=['POST'])
 @authorize
@@ -95,13 +115,19 @@ def sent_user_invitation(group_id):
 
     return invitations
 
-@group_api.route('/<group_id>/join', methods=['POST'])
+@group_api.route('/join', methods=['POST'])
 @authorize
-def join_group(group_id):
+def join_group():
     Session = get_database_session()
     user = get_authorized_user()
-    secret_key = request.args.get('secret_key')
-    group = Session.query(Group).filter(Group.id == group_id).first()
+    secret_key = request.json.get('secret_key')
+    if not secret_key:
+        return {
+            'code': error_codes.BAD_REQUEST,
+            'message': 'Secret not provided' 
+        }, 400
+    
+    group: Group = Session.query(Group).filter(Group.secret_key == secret_key).first()
 
     if group is None:
         return {
@@ -109,20 +135,23 @@ def join_group(group_id):
             'message': 'Group not found' 
         }, 404
 
-    user_membership = Session.query(Membership).filter(Membership.user_id == user.id).first()
+    user_membership: Membership = Session.query(Membership).filter(Membership.user_id == user.id).first()
+    print()
+    print(user_membership)
+    print()
     if user_membership is None:
         user_membership = Membership(
-            group_id = group_id,
+            group_id = group.id,
             user_id = user.id,
-            status = UserStatus.ACCEPTED._value_
+            status = UserStatus.ACCEPTED.name
         )
         Session.add(user_membership)
     else:
-        user_membership.status = UserStatus.ACCEPTED._value_
+        user_membership.status = UserStatus.ACCEPTED.name
     
     Session.commit()
 
-    return group.name
+    return str(group.id)
 
 
 @group_api.route('/<group_id>/kick', methods=['DELETE'])
@@ -143,7 +172,8 @@ def kick_users(group_id):
         }, 403
 
     invitations = []
-    for user_id in request.get_json():
+    users = request.args.get('users', [])
+    for user_id in users:
         user_membership = Session.query(Membership).filter(Membership.user_id == user_id)
         Session.remove(user_membership)
     Session.commit()

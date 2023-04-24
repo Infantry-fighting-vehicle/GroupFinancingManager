@@ -1,8 +1,8 @@
-"""Final solution
+"""empty message
 
-Revision ID: d8cf3977a4dc
+Revision ID: a5486ac74fbc
 Revises: 
-Create Date: 2022-10-26 10:33:41.229101
+Create Date: 2023-04-02 23:58:30.740162
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'd8cf3977a4dc'
+revision = 'a5486ac74fbc'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -26,7 +26,7 @@ def upgrade() -> None:
     op.create_table('users',
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=45), nullable=False),
-    sa.Column('password', sa.String(length=45), nullable=False),
+    sa.Column('password', sa.String(length=120), nullable=False),
     sa.Column('first_name', sa.String(length=45), nullable=False),
     sa.Column('last_name', sa.String(length=45), nullable=False),
     sa.Column('card_number', sa.String(length=45), nullable=False),
@@ -34,19 +34,21 @@ def upgrade() -> None:
     sa.Column('email', sa.String(length=45), nullable=False),
     sa.PrimaryKeyConstraint('user_id')
     )
-    op.create_table('groups_',
+    op.create_table('groups',
     sa.Column('group_id', sa.Integer(), nullable=False),
     sa.Column('owner_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=45), nullable=False),
-    sa.Column('password', sa.String(length=45), nullable=False),
+    sa.Column('secret_key', sa.String(length=45), nullable=False),
     sa.ForeignKeyConstraint(['owner_id'], ['users.user_id'], ),
-    sa.PrimaryKeyConstraint('group_id')
+    sa.PrimaryKeyConstraint('group_id'),
+    sa.UniqueConstraint('secret_key')
     )
     op.create_table('memberships',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('group_id', sa.Integer(), nullable=False),
-    sa.ForeignKeyConstraint(['group_id'], ['groups_.group_id'], ),
+    sa.Column('status', sa.Enum('UNACCEPTED', 'ACCEPTED', 'BANNED', 'OWNER', name='userstatus'), nullable=False),
+    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.user_id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -56,7 +58,7 @@ def upgrade() -> None:
     sa.Column('owner_id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=45), nullable=False),
     sa.Column('cost', sa.Float(), nullable=False),
-    sa.ForeignKeyConstraint(['group_id'], ['groups_.group_id'], ),
+    sa.ForeignKeyConstraint(['group_id'], ['groups.group_id'], ),
     sa.ForeignKeyConstraint(['owner_id'], ['users.user_id'], ),
     sa.PrimaryKeyConstraint('purchase_id')
     )
@@ -79,7 +81,7 @@ def downgrade() -> None:
     op.drop_table('transfers')
     op.drop_table('purchases')
     op.drop_table('memberships')
-    op.drop_table('groups_')
+    op.drop_table('groups')
     op.drop_table('users')
     op.drop_table('typesOfTransfer')
     # ### end Alembic commands ###
