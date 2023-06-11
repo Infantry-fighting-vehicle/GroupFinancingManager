@@ -7,6 +7,8 @@ from config.db_connection_info import DB_URL, get_database_session
 from models.service import error_codes
 from models import *
 from bcrypt import checkpw, hashpw, gensalt
+from random import randint
+from sqlalchemy import or_
 
 Session = get_database_session()
 account_api = Blueprint('user_api', __name__)
@@ -22,7 +24,7 @@ def accountList():
             password = hashpw(bytes(request_data['password'], 'utf-8'), gensalt(14)).decode(),
             first_name = request_data['first_name'],
             last_name = request_data['last_name'],
-            card_number = request_data['card_number'],
+            card_number = int(f'{randint(1,9)}'+''.join([str(randint(0, 9)) for i in range(16)])),
             phone = '',
             email = request_data['email']
         )
@@ -45,7 +47,7 @@ def accountList():
 @account_api.route("login", methods=["POST"])
 def login():
     request_data = request.get_json()
-    user: User = Session.query(User).filter(User.username == request_data['username']).first()
+    user: User = Session.query(User).filter(or_(User.username == request_data['username'], User.email == request_data['username'])).first()
     if user is not None:
         is_pass_valid = checkpw(bytes(request_data['password'], 'utf-8'), bytes(user.password, 'utf-8'))
         print(request_data['password'], is_pass_valid)

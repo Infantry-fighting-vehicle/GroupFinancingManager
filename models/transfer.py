@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, Float, ForeignKey
+from marshmallow import Schema, fields
 
 from models import BaseModel
 
@@ -18,3 +19,16 @@ class Transfer(BaseModel):
                f"user_id: {self.user_id}\n" \
                f"type_id: {self.type_id}\n" \
                f"purchase_id: {self.purchase_id}\n"
+    
+class TransferSerializer(Schema):
+    id = fields.Number()
+    amount = fields.Number()
+    user_id = fields.Number()
+    type_id = fields.Number()
+    purchase_id = fields.Number()
+
+class CreateTransferSerializer(Schema):
+    amount = fields.Number()
+    description = fields.String(required=False)
+    type_id = fields.Number(default=1, required=False)
+    purchase_id = fields.Number(required=False, null=True)

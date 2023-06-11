@@ -2,8 +2,33 @@ from flask import *
 from api import *
 
 app = Flask(__name__)
-app.register_blueprint(account_api, url_prefix='/user')
-app.register_blueprint(group_api, url_prefix='/group')
+# app.register_blueprint(account_api, url_prefix='/user')
+# app.register_blueprint(group_api, url_prefix='/group')
+
+app.add_url_rule("/user", methods=["GET", "POST"], view_func=accountList)
+app.add_url_rule("/user/login", methods=["POST"], view_func=login)
+app.add_url_rule("/user/logout", view_func=logout)
+app.add_url_rule("/user/<username>", methods=["GET", "PUT", "DELETE"], view_func=getUserBytUsername)
+
+app.add_url_rule('/group', methods=['POST'], view_func=create_function)
+app.add_url_rule('/group/list', methods=['GET'], view_func=list_avaliable_groups)
+app.add_url_rule('/group/<group_id>', methods=['GET', 'PUT', 'DELETE'], view_func=group_management)
+#route('/group/<group_id>/send_invitation', methods=['POST'])
+app.add_url_rule('/group/join', methods=['POST'], view_func=join_group)
+app.add_url_rule('/group/<group_id>/kick', methods=['DELETE'], view_func=kick_users)
+app.add_url_rule('/group/<group_id>/purchase', methods=['POST'], view_func=purchase_create)
+app.add_url_rule('/group/<group_id>/purchase/<purchase_id>', methods=['DELETE'], view_func=purchase_delete)
+# route('/group/purchase/<purchase_id>', methods=['PUT'])
+# app.add_url_rule('/group/purchase/<purchase_id>', methods=['GET'], view_func=get_purchase)
+#route("/user/", methods=["POST", "GET"])
+#route("/user/login")
+#route("/user/logout")
+#route("/user/<username>", methods=["GET", "PUT", "DELETE"])
+
+# @app.route("/")
+# # @app.route("/api/v1/hello-world-16")
+# @app.route("/api/v1/hello-world-<var>")
+# @app.route("/api")
 
 @app.after_request
 def add_cors_headers(response):
